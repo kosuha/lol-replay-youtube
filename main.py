@@ -1,1 +1,4 @@
-import config.riot_api
+import moviepy.editor as mp
+import pyautogui
+
+print("Start")
