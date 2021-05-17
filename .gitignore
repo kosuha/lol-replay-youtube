@@ -130,3 +130,5 @@ dmypy.json
 
 config/
 .vscode/
+chromedriver.exe
+geckodriver.exe
