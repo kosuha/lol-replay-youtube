@@ -8,23 +8,22 @@ from selenium.common.exceptions import TimeoutException    # 태그가 없는 �
 import time
 import urllib
 
-options = webdriver.FirefoxOptions()
+def downloader(player):
+    options = webdriver.FirefoxOptions()
 
-driver_file = r"C:/Users/okeyd/Documents/lol-replay-youtube/geckodriver.exe"
-download_location = "C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads"
+    driver_file = r"C:/Users/okeyd/Documents/lol-replay-youtube/geckodriver.exe"
+    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player}"
 
+    options.set_preference("browser.download.folderList", 2) # 다운로드 파일을 원하는 위치로 보내기
+    options.set_preference("browser.download.manager.showWhenStarting", False) # 다운로드 관리자 창 비활성화
+    options.set_preference("browser.download.dir", download_location) # 경로 설정
+    options.set_preference("browser.helperApps.neverAsk.saveToDisk", "doesn/matter") # 파일을 여는 데 사용할 파일 형식 묻지 않도록 MIME 설정
 
-options.set_preference("browser.download.folderList", 2) # 다운로드 파일을 원하는 위치로 보내기
-options.set_preference("browser.download.manager.showWhenStarting", False) # 다운로드 관리자 창 비활성화
-options.set_preference("browser.download.dir", download_location) # 경로 설정
-options.set_preference("browser.helperApps.neverAsk.saveToDisk", "doesn/matter") # 파일을 여는 데 사용할 파일 형식 묻지 않도록 MIME 설정
+    options.add_argument('--headless')  # headless chrome 옵션 적용
+    options.add_argument('--disable-gpu')   # GPU 사용 안함
 
-options.add_argument('--headless')  # headless chrome 옵션 적용
-options.add_argument('--disable-gpu')   # GPU 사용 안함
+    driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
 
-driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
-
-def crawler(player):
     player_parse = urllib.parse.quote(player) # 한글 깨짐 방지
     url = f'https://www.op.gg/summoner/userName={player_parse}'
 
@@ -72,5 +71,3 @@ def crawler(player):
         driver.quit()
         print("-" * 100)
         return -1
-
-crawler('hide on bush')
