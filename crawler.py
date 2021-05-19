@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 
+import os
 from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait   # 해당 태그를 기다림
@@ -44,9 +45,14 @@ def downloader(player):
             game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
             data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
             print(data_game_id)
-
+            
+            # 이미 있는 리플레이는 패스
+            file_list = os.listdir(download_location)
+            if f'{data_game_id}.bat' in file_list:
+                continue
+            
+            # 솔랭이 아니면 패스
             game_type = driver.find_element_by_css_selector(game_type_tag).text
-            print(game_type)
             if game_type != '솔랭':
                 continue
 
@@ -64,6 +70,18 @@ def downloader(player):
             popup_close = driver.find_element_by_css_selector(popup_close_tag)
             popup_close.click()
             time.sleep(1)
+
+            src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
+            new_name = os.path.join(download_location, f'{data_game_id}.bat')
+            os.rename(src, new_name)
+        
+        # 20개가 넘어가면 오래된 파일은 삭제
+        file_list = os.listdir(download_location)
+        if len(file_list) > 20:
+            remove_length = len(file_list) - 20
+            for i in range(0, remove_length):
+                remove_target = os.path.join(download_location, file_list[i])
+                os.remove(remove_target)
 
     # 예외처리
     except TimeoutException:
