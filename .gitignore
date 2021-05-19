@@ -132,3 +132,4 @@ config/
 .vscode/
 chromedriver.exe
 geckodriver.exe
+done_list/
