@@ -8,6 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException    # 태그가 없는 예외 처리
 import time
 import urllib
+import pandas as pd
+import database
 
 def downloader(player):
     options = webdriver.FirefoxOptions()
@@ -53,19 +55,23 @@ def downloader(player):
         language_save.click()
         time.sleep(3)
 
+        tier_tag= f'.TierRankInfo>.TierRank'
+        tier = driver.find_element_by_css_selector(tier_tag).text
+
+        dfs = []
+
         for i in range(20, 0, -1):
             download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item>a'
             game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
             game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
             summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
             summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
-            tier_tag= f'.TierRankInfo>.TierRank'
+            
             summoners = driver.find_elements_by_css_selector(summoner_name_tag)
             summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
             data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
             game_length = driver.find_element_by_css_selector(game_length_tag).text
             game_length = (int(game_length[:game_length.index('m')]) * 60) + int(game_length[game_length.index('m')+1:game_length.index('s')])
-            tier = driver.find_element_by_css_selector(tier_tag).text
             
             # 선수 주 포지션이 아닐 경우 패스
             if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
@@ -81,7 +87,7 @@ def downloader(player):
             if game_type != 'Ranked Solo':
                 continue
 
-            match_info = {
+            match_info_dict = {
                 'id': data_game_id,
                 'name': player[0],
                 'tier': tier,
@@ -90,21 +96,23 @@ def downloader(player):
                 'champion': '',
                 'vs_name': '',
                 'vs_champion': '',
-                'team': ''
+                'team': '',
+                'record': False,
+                'upload': False
             }
 
             # 팀 구분하고 매치 정보 저장
             if summoners[0].text == player[0]:
-                match_info['champion'] = summoners_champion[0].text
-                match_info['vs_champion'] = summoners_champion[1].text
-                match_info['vs_name'] = summoners[1].text
-                match_info['team'] = 'blue'
+                match_info_dict['champion'] = summoners_champion[0].text
+                match_info_dict['vs_champion'] = summoners_champion[1].text
+                match_info_dict['vs_name'] = summoners[1].text
+                match_info_dict['team'] = 'blue'
 
             if summoners[1].text == player[0]:
-                match_info['champion'] = summoners_champion[1].text
-                match_info['vs_champion'] = summoners_champion[0].text
-                match_info['vs_name'] = summoners[0].text
-                match_info['team'] = 'red'
+                match_info_dict['champion'] = summoners_champion[1].text
+                match_info_dict['vs_champion'] = summoners_champion[0].text
+                match_info_dict['vs_name'] = summoners[0].text
+                match_info_dict['team'] = 'red'
 
             # 리플레이 다운로드
             download_replay = driver.find_element_by_css_selector(download_replay_tag)
@@ -124,7 +132,10 @@ def downloader(player):
             new_name = os.path.join(download_location, f'{data_game_id}.bat')
             os.rename(src, new_name)
 
-            print(match_info)
+            match_info_df = pd.DataFrame(match_info_dict, index=[0])
+            dfs.append(match_info_df)
+
+        df = pd.concat(dfs)
         
         # 20개가 넘어가면 오래된 파일은 삭제
         file_list = os.listdir(download_location)
@@ -135,6 +146,8 @@ def downloader(player):
                 os.remove(remove_target)
         
         print("-" * 100)
+        driver.quit()
+        return df
 
     # 예외처리
     except TimeoutException:
