@@ -13,7 +13,7 @@ def downloader(player):
     options = webdriver.FirefoxOptions()
 
     driver_file = r"C:/Users/okeyd/Documents/lol-replay-youtube/geckodriver.exe"
-    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player}"
+    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player[0]}"
 
     options.set_preference("browser.download.folderList", 2) # 다운로드 파일을 원하는 위치로 보내기
     options.set_preference("browser.download.manager.showWhenStarting", False) # 다운로드 관리자 창 비활성화
@@ -25,7 +25,7 @@ def downloader(player):
 
     driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
 
-    player_parse = urllib.parse.quote(player) # 한글 깨짐 방지
+    player_parse = urllib.parse.quote(player[0]) # 한글 깨짐 방지
     url = f'https://www.op.gg/summoner/userName={player_parse}'
 
     print("-" * 100)
@@ -43,6 +43,28 @@ def downloader(player):
             download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item>a'
             game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
             game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
+            summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
+            summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
+            summoners = driver.find_elements_by_css_selector(summoner_name_tag)
+            summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
+            
+            # 선수 주 포지션이 아닐 경우 패스
+            if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
+                print(summoners[0].text, summoners_champion[0].text)
+                print(summoners[1].text, summoners_champion[1].text)
+                print('-')
+                continue
+
+            match_info = {}
+
+            if summoners[0].text == player[0]:
+                match_info['champion'] = summoners_champion[0].text
+                match_info['vs_champion'] = summoners_champion[1].text
+
+            if summoners[1].text == player[0]:
+                match_info['champion'] = summoners_champion[1].text
+                match_info['vs_champion'] = summoners_champion[0].text
+
             data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
             game_length = driver.find_element_by_css_selector(game_length_tag).text
             game_length = (int(game_length[:game_length.index('분')]) * 60) + int(game_length[game_length.index('분')+1:game_length.index('초')])
@@ -70,7 +92,7 @@ def downloader(player):
             time.sleep(1)
 
             src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
-            new_name = os.path.join(download_location, f'{data_game_id}_{str(game_length)}.bat')
+            new_name = os.path.join(download_location, f'{data_game_id}_{str(game_length)}_{match_info["champion"]}_{match_info["vs_champion"]}.bat')
             os.rename(src, new_name)
         
         # 20개가 넘어가면 오래된 파일은 삭제
