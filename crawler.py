@@ -39,20 +39,19 @@ def downloader(player):
             EC.presence_of_element_located((By.CSS_SELECTOR, '.GameItemList'))
         )
 
+        # 언어 설정 변경
         language_tag = f'.opgg-language__open'
         language_button = driver.find_element_by_css_selector(language_tag)
         language_button.click()
         time.sleep(1)
-
         english_tag= f'.DimmedBlockInner>div>.modal-content>div:nth-child(3)>ul>li:nth-child(2)>a'
         english = driver.find_element_by_css_selector(english_tag)
         english.click()
         time.sleep(1)
-
         language_save_tag= f'.modal-footer>button'
         language_save = driver.find_element_by_css_selector(language_save_tag)
         language_save.click()
-        time.sleep(1)
+        time.sleep(3)
 
         for i in range(20, 0, -1):
             download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item>a'
@@ -60,11 +59,13 @@ def downloader(player):
             game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
             summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
             summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
+            tier_tag= f'.TierRankInfo>.TierRank'
             summoners = driver.find_elements_by_css_selector(summoner_name_tag)
             summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
             data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
             game_length = driver.find_element_by_css_selector(game_length_tag).text
             game_length = (int(game_length[:game_length.index('m')]) * 60) + int(game_length[game_length.index('m')+1:game_length.index('s')])
+            tier = driver.find_element_by_css_selector(tier_tag).text
             
             # 선수 주 포지션이 아닐 경우 패스
             if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
@@ -83,6 +84,7 @@ def downloader(player):
             match_info = {
                 'id': data_game_id,
                 'name': player[0],
+                'tier': tier,
                 'position': player[1],
                 'length': game_length,
                 'champion': '',
@@ -91,6 +93,7 @@ def downloader(player):
                 'team': ''
             }
 
+            # 팀 구분하고 매치 정보 저장
             if summoners[0].text == player[0]:
                 match_info['champion'] = summoners_champion[0].text
                 match_info['vs_champion'] = summoners_champion[1].text
@@ -103,6 +106,7 @@ def downloader(player):
                 match_info['vs_name'] = summoners[0].text
                 match_info['team'] = 'red'
 
+            # 리플레이 다운로드
             download_replay = driver.find_element_by_css_selector(download_replay_tag)
             download_replay.click()
             time.sleep(1)
@@ -115,6 +119,7 @@ def downloader(player):
             popup_close.click()
             time.sleep(1)
 
+            # 다운로드한 파일명 바꾸기
             src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
             new_name = os.path.join(download_location, f'{data_game_id}.bat')
             os.rename(src, new_name)
