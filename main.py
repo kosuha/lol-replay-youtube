@@ -1,5 +1,6 @@
 import os
 import crawler
+import database
 import replay_maker
 
 players = [['Hide on bush', 3], ['T1 Canna', 1], ['T1 Teddy', 4]]
@@ -8,7 +9,6 @@ players = [['Hide on bush', 3], ['T1 Canna', 1], ['T1 Teddy', 4]]
 def make_download_dir(players):
     path_dir = "C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads"
     file_list = os.listdir(path_dir)
-    print(file_list)
 
     for p in players:
         if not p[0] in file_list:
@@ -18,7 +18,6 @@ def make_download_dir(players):
 def make_done_list(players):
     path_dir = "C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\done_list"
     file_list = os.listdir(path_dir)
-    print(file_list)
 
     for p in players:
         if not f'{p[0]}.txt' in file_list:
@@ -31,5 +30,6 @@ print("Start")
 make_done_list(players)
 make_download_dir(players)
 
-crawler.downloader(players[0])
+df = crawler.downloader(players[0])
+database.insert(df, players[0][0])
 # replay_maker.recorder()
