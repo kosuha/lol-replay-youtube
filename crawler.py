@@ -20,7 +20,7 @@ def downloader(player):
     options.set_preference("browser.download.dir", download_location) # 경로 설정
     options.set_preference("browser.helperApps.neverAsk.saveToDisk", "doesn/matter") # 파일을 여는 데 사용할 파일 형식 묻지 않도록 MIME 설정
 
-    options.add_argument('--headless')  # headless chrome 옵션 적용
+    options.add_argument('--headless')  # headless 옵션 적용
     options.add_argument('--disable-gpu')   # GPU 사용 안함
 
     driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
@@ -39,6 +39,21 @@ def downloader(player):
             EC.presence_of_element_located((By.CSS_SELECTOR, '.GameItemList'))
         )
 
+        language_tag = f'.opgg-language__open'
+        language_button = driver.find_element_by_css_selector(language_tag)
+        language_button.click()
+        time.sleep(1)
+
+        english_tag= f'.DimmedBlockInner>div>.modal-content>div:nth-child(3)>ul>li:nth-child(2)>a'
+        english = driver.find_element_by_css_selector(english_tag)
+        english.click()
+        time.sleep(1)
+
+        language_save_tag= f'.modal-footer>button'
+        language_save = driver.find_element_by_css_selector(language_save_tag)
+        language_save.click()
+        time.sleep(1)
+
         for i in range(20, 0, -1):
             download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item>a'
             game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
@@ -47,37 +62,46 @@ def downloader(player):
             summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
             summoners = driver.find_elements_by_css_selector(summoner_name_tag)
             summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
+            data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
+            game_length = driver.find_element_by_css_selector(game_length_tag).text
+            game_length = (int(game_length[:game_length.index('m')]) * 60) + int(game_length[game_length.index('m')+1:game_length.index('s')])
             
             # 선수 주 포지션이 아닐 경우 패스
             if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
-                print(summoners[0].text, summoners_champion[0].text)
-                print(summoners[1].text, summoners_champion[1].text)
-                print('-')
                 continue
 
-            match_info = {}
-
-            if summoners[0].text == player[0]:
-                match_info['champion'] = summoners_champion[0].text
-                match_info['vs_champion'] = summoners_champion[1].text
-
-            if summoners[1].text == player[0]:
-                match_info['champion'] = summoners_champion[1].text
-                match_info['vs_champion'] = summoners_champion[0].text
-
-            data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
-            game_length = driver.find_element_by_css_selector(game_length_tag).text
-            game_length = (int(game_length[:game_length.index('분')]) * 60) + int(game_length[game_length.index('분')+1:game_length.index('초')])
-            
             # 이미 있는 리플레이는 패스
             file_list = os.listdir(download_location)
-            if f'{data_game_id}_{str(game_length)}.bat' in file_list:
+            if f'{data_game_id}.bat' in file_list:
                 continue
             
             # 솔랭이 아니면 패스
             game_type = driver.find_element_by_css_selector(game_type_tag).text
-            if game_type != '솔랭':
+            if game_type != 'Ranked Solo':
                 continue
+
+            match_info = {
+                'id': data_game_id,
+                'name': player[0],
+                'position': player[1],
+                'length': game_length,
+                'champion': '',
+                'vs_name': '',
+                'vs_champion': '',
+                'team': ''
+            }
+
+            if summoners[0].text == player[0]:
+                match_info['champion'] = summoners_champion[0].text
+                match_info['vs_champion'] = summoners_champion[1].text
+                match_info['vs_name'] = summoners[1].text
+                match_info['team'] = 'blue'
+
+            if summoners[1].text == player[0]:
+                match_info['champion'] = summoners_champion[1].text
+                match_info['vs_champion'] = summoners_champion[0].text
+                match_info['vs_name'] = summoners[0].text
+                match_info['team'] = 'red'
 
             download_replay = driver.find_element_by_css_selector(download_replay_tag)
             download_replay.click()
@@ -92,8 +116,10 @@ def downloader(player):
             time.sleep(1)
 
             src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
-            new_name = os.path.join(download_location, f'{data_game_id}_{str(game_length)}_{match_info["champion"]}_{match_info["vs_champion"]}.bat')
+            new_name = os.path.join(download_location, f'{data_game_id}.bat')
             os.rename(src, new_name)
+
+            print(match_info)
         
         # 20개가 넘어가면 오래된 파일은 삭제
         file_list = os.listdir(download_location)
@@ -102,6 +128,8 @@ def downloader(player):
             for i in range(0, remove_length):
                 remove_target = os.path.join(download_location, file_list[i])
                 os.remove(remove_target)
+        
+        print("-" * 100)
 
     # 예외처리
     except TimeoutException:
