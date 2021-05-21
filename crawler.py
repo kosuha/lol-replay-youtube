@@ -9,7 +9,6 @@ from selenium.common.exceptions import TimeoutException    # 태그가 없는 �
 import time
 import urllib
 import pandas as pd
-import database
 
 def downloader(player):
     options = webdriver.FirefoxOptions()
@@ -61,7 +60,7 @@ def downloader(player):
         dfs = []
 
         for i in range(20, 0, -1):
-            download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item>a'
+            download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item:nth-child(1)>a'
             game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
             game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
             summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
@@ -86,6 +85,26 @@ def downloader(player):
             game_type = driver.find_element_by_css_selector(game_type_tag).text
             if game_type != 'Ranked Solo':
                 continue
+
+            # 리플레이 다운로드 리플레이가 없으면 패스
+            try:
+                download_replay = driver.find_element_by_css_selector(download_replay_tag)
+                download_replay.click()
+                time.sleep(1)
+
+                driver.switch_to_alert().accept()
+                time.sleep(1)
+                popup_close_tag= f'.DimmedBlock>div>table>tbody>tr>td>div>.Close'
+                popup_close = driver.find_element_by_css_selector(popup_close_tag)
+                popup_close.click()
+                time.sleep(1)
+            except:
+                continue
+            
+            # 다운로드한 파일명 바꾸기
+            src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
+            new_name = os.path.join(download_location, f'{data_game_id}.bat')
+            os.rename(src, new_name)
 
             match_info_dict = {
                 'id': data_game_id,
@@ -114,25 +133,8 @@ def downloader(player):
                 match_info_dict['vs_name'] = summoners[0].text
                 match_info_dict['team'] = 'red'
 
-            # 리플레이 다운로드
-            download_replay = driver.find_element_by_css_selector(download_replay_tag)
-            download_replay.click()
-            time.sleep(1)
-
-            driver.switch_to_alert().accept()
-            time.sleep(1)
-
-            popup_close_tag= f'.DimmedBlock>div>table>tbody>tr>td>div>.Close'
-            popup_close = driver.find_element_by_css_selector(popup_close_tag)
-            popup_close.click()
-            time.sleep(1)
-
-            # 다운로드한 파일명 바꾸기
-            src = os.path.join(download_location, f'LOL_OPGG_Observer_{data_game_id}_replay.bat')
-            new_name = os.path.join(download_location, f'{data_game_id}.bat')
-            os.rename(src, new_name)
-
             match_info_df = pd.DataFrame(match_info_dict, index=[0])
+            print(match_info_df)
             dfs.append(match_info_df)
 
         df = pd.concat(dfs)
