@@ -14,7 +14,8 @@ def downloader(player):
     options = webdriver.FirefoxOptions()
 
     driver_file = r"C:/Users/okeyd/Documents/lol-replay-youtube/geckodriver.exe"
-    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player[0]}"
+    player_parse = urllib.parse.quote(player[0]) # 한글 깨짐 방지
+    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player_parse}"
 
     options.set_preference("browser.download.folderList", 2) # 다운로드 파일을 원하는 위치로 보내기
     options.set_preference("browser.download.manager.showWhenStarting", False) # 다운로드 관리자 창 비활성화
@@ -26,7 +27,6 @@ def downloader(player):
 
     driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
 
-    player_parse = urllib.parse.quote(player[0]) # 한글 깨짐 방지
     url = f'https://www.op.gg/summoner/userName={player_parse}'
 
     print("-" * 100)
@@ -139,10 +139,10 @@ def downloader(player):
 
         df = pd.concat(dfs)
         
-        # 20개가 넘어가면 오래된 파일은 삭제
+        # 100개가 넘어가면 오래된 파일은 삭제
         file_list = os.listdir(download_location)
-        if len(file_list) > 20:
-            remove_length = len(file_list) - 20
+        if len(file_list) > 100:
+            remove_length = len(file_list) - 100
             for i in range(0, remove_length):
                 remove_target = os.path.join(download_location, file_list[i])
                 os.remove(remove_target)
