@@ -1,4 +1,3 @@
-import pymysql
 import config.conn as db
 import pandas as pd
 from sqlalchemy import create_engine
@@ -10,3 +9,9 @@ conn = engine.connect()
 def insert(df, player):
     player_ = player.replace(" ", "_").lower()
     df.to_sql(name=player_, con=engine, if_exists='append', index=True)
+
+def select(player):
+    player_ = player.replace(" ", "_").lower()
+    data = pd.read_sql_query(f"select * from {player_} where record=0", engine)
+    return data
+    
