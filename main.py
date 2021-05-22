@@ -1,9 +1,18 @@
 import os
 import crawler
 import database
+import urllib
 import replay_maker
+import pandas as pd
+import config.conn as db
+from sqlalchemy import create_engine
+import thumbnail
 
-players = [['Hide on bush', 3], ['T1 Canna', 1], ['T1 Teddy', 4]]
+# DB에 연결
+engine = create_engine(db.conn)
+conn = engine.connect()
+
+players = [['Hide on bush', 3], ['Cuzzzzzzz', 2], ['Gen G Ruler', 4]]
 
 # 선수의 다운로드 폴더가 없으면 생성
 def make_download_dir(players):
@@ -11,25 +20,28 @@ def make_download_dir(players):
     file_list = os.listdir(path_dir)
 
     for p in players:
-        if not p[0] in file_list:
-            os.makedirs(path_dir + "\\" + p[0])
-
-# 선수의 완료 리스트가 없으면 생성
-def make_done_list(players):
-    path_dir = "C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\done_list"
-    file_list = os.listdir(path_dir)
-
-    for p in players:
-        if not f'{p[0]}.txt' in file_list:
-            txt_name = os.path.join(path_dir, f'{p[0]}.txt')
-            f = open(txt_name, 'w')
-            f.close()
+        player_parse = urllib.parse.quote(p[0]) # 한글 깨짐 방지
+        if not player_parse in file_list:
+            os.makedirs(path_dir + "\\" + player_parse)
 
 print("Start")
 
-make_done_list(players)
 make_download_dir(players)
+crawler.champion_image()
 
-df = crawler.downloader(players[0])
-database.insert(df, players[0][0])
-# replay_maker.recorder()
+for player in players:
+    df = crawler.downloader(player)
+
+    if df.empty == False:
+        database.insert(df, player[0])
+
+    data = database.select(player[0])
+
+    for i in range(0, len(data)):
+        match_info = data.iloc[i]
+        thumbnail.thumbnail_maker(match_info)
+        # player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
+        # replay_maker.run(player_parse, match_info)
+
+        # player_ = data.iloc[0]['name'].replace(" ", "_").lower()
+        # data = pd.read_sql_query(f"update {player_} set record=1 where id={data.iloc[0]['id']}", engine)
