@@ -9,6 +9,7 @@ from selenium.common.exceptions import TimeoutException    # 태그가 없는 �
 import time
 import urllib
 import pandas as pd
+from urllib.request import urlretrieve
 
 def downloader(player):
     options = webdriver.FirefoxOptions()
@@ -157,3 +158,53 @@ def downloader(player):
         driver.quit()
         print("-" * 100)
         return -1
+
+def champion_image():
+    options = webdriver.FirefoxOptions()
+
+    driver_file = r"C:/Users/okeyd/Documents/lol-replay-youtube/geckodriver.exe"
+    download_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\img\\champions"
+
+    options.set_preference("browser.download.folderList", 2) # 다운로드 파일을 원하는 위치로 보내기
+    options.set_preference("browser.download.manager.showWhenStarting", False) # 다운로드 관리자 창 비활성화
+    options.set_preference("browser.download.dir", download_location) # 경로 설정
+    options.set_preference("browser.helperApps.neverAsk.saveToDisk", "doesn/matter") # 파일을 여는 데 사용할 파일 형식 묻지 않도록 MIME 설정
+
+    options.add_argument('--headless')  # headless 옵션 적용
+    options.add_argument('--disable-gpu')   # GPU 사용 안함
+
+    driver = webdriver.Firefox(executable_path = driver_file, firefox_options=options) # 옵션 적용
+
+    url = 'https://na.leagueoflegends.com/en-us/champions/'
+
+    print("-" * 100)
+
+    driver.get(url) # 크롤링할 사이트 호출
+    print(url)
+
+    # 태그 내의 챔피언 수를 가져옴
+    list_tag = '.style__List-ntddd-2.fqjuPM'
+    champion_list = driver.find_elements_by_css_selector(list_tag + '>a')
+    champion_num = len(champion_list)
+
+    # 챔피언 수가 바뀐 경우 이미지 삭제 후 다시 다운로드
+    img_location = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\img\\champions"
+    file_list = os.listdir(img_location)
+
+    if champion_num != len(file_list):
+        for f in file_list:
+            remove_target = os.path.join(img_location, f)
+            os.remove(remove_target)
+
+        img_tag= f'{list_tag}>a>span:nth-child(1)>img'
+        champion_img = driver.find_elements_by_css_selector(img_tag)
+        champion_name_tag= f'{list_tag}>a>span:nth-child(2)>span'
+        champion_name = driver.find_elements_by_css_selector(champion_name_tag)
+
+        for i in range(1, champion_num):
+            img_link = champion_img[i].get_attribute('src')
+            file_name = champion_name[i].text
+            urlretrieve(img_link, f'./img/champions/{file_name}.jpg')
+
+    driver.quit()
+
