@@ -15,3 +15,7 @@ def select(player):
     data = pd.read_sql_query(f"select * from {player_} where record=0", engine)
     return data
     
+def recorded(player, id):
+    player_ = player.replace(" ", "_").lower()
+    data = pd.read_sql_query(f"update {player_} set record=1 where id={id}", engine)
+    return data
