@@ -133,3 +133,4 @@ config/
 chromedriver.exe
 geckodriver.exe
 done_list/
+*.jpg
