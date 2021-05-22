@@ -2,10 +2,10 @@
 
 import os
 import time
-import sys
-import configparser
 import pyautogui as pg
 import keyboard
+import database
+import urllib
 
 def recorder(data_first):
     if data_first['team'] == 'red':
@@ -92,6 +92,15 @@ def run(player, data_first):
             keyboard.release('alt')
             keyboard.release('f4')
             time.sleep(5)
+
+            database.recorded(data_first['name'], data_first['id'])
+            highlights_location = 'C:\\Users\\okeyd\\Documents\\League of Legends\\Highlights'
+            file_list = os.listdir(highlights_location)
+            print(file_list[0])
+            src = os.path.join(highlights_location, file_list[0])
+            player_parse = urllib.parse.quote(data_first['name']) # 한글 깨짐 방지
+            new_name = os.path.join(highlights_location, f"{data_first['id']}_{player_parse}.webm")
+            os.rename(src, new_name)
             break
         
         print('recording...')
