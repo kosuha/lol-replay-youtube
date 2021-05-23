@@ -12,7 +12,7 @@ import thumbnail
 engine = create_engine(db.conn)
 conn = engine.connect()
 
-players = [['Hide on bush', 3]]
+players = [['Gen G Ruler', 4]]
 
 # 선수의 다운로드 폴더가 없으면 생성
 def make_download_dir(players):
@@ -42,8 +42,6 @@ for player in players:
         thumbnail.thumbnail_maker(match_info)
         player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
         replay_maker.run(player_parse, match_info)
-
-        # TODO 관전자 데이터를 다운로드하지 못했습니다. 해결 필요.
 
         player_ = data.iloc[0]['name'].replace(" ", "_").lower()
         data = pd.read_sql_query(f"update {player_} set record=1 where id={data.iloc[0]['id']}", engine)

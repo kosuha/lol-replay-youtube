@@ -44,6 +44,15 @@ def recorder(data_first):
     keyboard.release(position)
     time.sleep(1)
 
+    keyboard.press('p')
+    time.sleep(0.5)
+    keyboard.release('p')
+    time.sleep(30)
+    keyboard.press('p')
+    time.sleep(0.5)
+    keyboard.release('p')
+    time.sleep(1)
+
     keyboard.press('ctrl')
     keyboard.press('v')
     time.sleep(0.5)
