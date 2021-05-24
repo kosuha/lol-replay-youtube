@@ -33,17 +33,21 @@ pg.click()
 url = 'https://studio.youtube.com'
 write(url)
 
+# 페이지 이동
 keyboard.press('enter')
 time.sleep(0.1)
 keyboard.release('enter')
 time.sleep(3)
 
+# 업로드 창 열기
 pg.moveTo(1782, 108)
 pg.click()
 time.sleep(1)
 pg.moveTo(1767, 142)
 pg.click()
 time.sleep(1)
+
+# 파일 선택 창 열기, 파일 선택, 열기 버튼
 pg.moveTo(960, 676)
 pg.click()
 time.sleep(1)
@@ -52,7 +56,7 @@ pg.click()
 time.sleep(1)
 pg.moveTo(771, 519)
 pg.click()
-time.sleep(1)
+time.sleep(10)
 
 while True:
     print("mouse position : ", pg.position())
