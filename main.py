@@ -1,18 +1,15 @@
 import os
+import time
 import crawler
 import database
 import urllib
 import replay_maker
 import pandas as pd
-import config.conn as db
-from sqlalchemy import create_engine
 import thumbnail
+import youtube_uploader
+import pymysql
 
-# DB에 연결
-engine = create_engine(db.conn)
-conn = engine.connect()
-
-players = [['Gen G Ruler', 4]]
+players = [['Hide on bush', 3, 'T1 Faker']]
 
 # 선수의 다운로드 폴더가 없으면 생성
 def make_download_dir(players):
@@ -35,13 +32,34 @@ for player in players:
     if df.empty == False:
         database.insert(df, player[0])
 
-    data = database.select(player[0])
+    while True:
+        highlights_location = 'C:\\Users\\okeyd\\Documents\\League of Legends\\Highlights'
 
-    for i in range(0, len(data)):
-        match_info = data.iloc[i]
+        data = database.select_upload(player[0])
+
+        if data.empty:
+            break
+
+        match_info = data.iloc[0]
+
         thumbnail.thumbnail_maker(match_info)
-        player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
-        replay_maker.run(player_parse, match_info)
 
-        player_ = data.iloc[0]['name'].replace(" ", "_").lower()
-        data = pd.read_sql_query(f"update {player_} set record=1 where id={data.iloc[0]['id']}", engine)
+        if match_info['record'] == 0:
+            player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
+            record_result = replay_maker.run(player_parse, match_info)
+            if record_result == False:
+                continue
+            player_ = data.iloc[0]['name'].replace(" ", "_").lower()
+            database.recorded(match_info['name'], match_info['id'])
+
+        time.sleep(3)
+
+        youtube_uploader.upload(match_info)
+        database.uploaded(match_info['name'], match_info['id'])
+        player_parse = urllib.parse.quote(match_info['name'])
+        remove_target = os.path.join(highlights_location, f"{match_info['id']}_{player_parse}.webm")
+        os.remove(remove_target)
+
+        print(match_info['name'], match_info['id'], "done!")
+
+print("End")

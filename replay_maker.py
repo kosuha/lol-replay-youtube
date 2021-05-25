@@ -35,6 +35,11 @@ def recorder(data_first):
     keyboard.release('u')
     time.sleep(1)
 
+    keyboard.press('n')
+    time.sleep(0.5)
+    keyboard.release('n')
+    time.sleep(1)
+
     keyboard.press(position)
     time.sleep(0.5)
     keyboard.release(position)
@@ -47,7 +52,7 @@ def recorder(data_first):
     keyboard.press('p')
     time.sleep(0.5)
     keyboard.release('p')
-    time.sleep(30)
+    time.sleep(180)
     keyboard.press('p')
     time.sleep(0.5)
     keyboard.release('p')
@@ -70,9 +75,9 @@ def find_image(file_name):
 
     return False
 
-def run(player, data_first):
+def run(player, match_info):
     working_dir = f"C:\\Users\\okeyd\\Documents\\lol-replay-youtube\\downloads\\{player}"
-    execute_file = os.path.join(working_dir, data_first['id'] + '.bat')
+    execute_file = os.path.join(working_dir, match_info['id'] + '.bat')
 
     os.chdir(working_dir)
     os.system(execute_file)
@@ -84,9 +89,19 @@ def run(player, data_first):
         print('file loading...')
         time.sleep(1)
 
-    recorder(data_first)
+    recorder(match_info)
 
     while True:
+        if find_image('fail.png') != False:
+            keyboard.press('alt')
+            keyboard.press('f4')
+            time.sleep(0.5)
+            keyboard.release('alt')
+            keyboard.release('f4')
+            time.sleep(5)
+            database.failed(match_info['name'], match_info['id'])
+            return False
+
         if find_image('end.png') != False:
             keyboard.press('ctrl')
             keyboard.press('v')
@@ -102,19 +117,18 @@ def run(player, data_first):
             keyboard.release('f4')
             time.sleep(5)
 
-            database.recorded(data_first['name'], data_first['id'])
             highlights_location = 'C:\\Users\\okeyd\\Documents\\League of Legends\\Highlights'
             file_list = os.listdir(highlights_location)
-            print(file_list[0])
             src = os.path.join(highlights_location, file_list[0])
-            player_parse = urllib.parse.quote(data_first['name']) # 한글 깨짐 방지
-            new_name = os.path.join(highlights_location, f"{data_first['id']}_{player_parse}.webm")
+            player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
+            new_name = os.path.join(highlights_location, f"{match_info['id']}_{player_parse}.webm")
             os.rename(src, new_name)
-            break
+            print('recorded!')
+            time.sleep(1)
+            return True
         
         print('recording...')
         time.sleep(1)
 
-    print('recorded!')
-    time.sleep(1)
+    
 
