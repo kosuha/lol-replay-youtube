@@ -56,6 +56,9 @@ def downloader(player):
             language_save.click()
             time.sleep(3)
 
+            region_tag = 'body > div.l-wrap.l-wrap--summoner > div.l-menu > ul > div > div > span'
+            region = driver.find_element_by_css_selector(region_tag).text
+
             tier_tag= f'.TierRankInfo>.TierRank'
             tier = driver.find_element_by_css_selector(tier_tag).text
 
@@ -64,15 +67,12 @@ def downloader(player):
             for i in range(20, 0, -1):
                 download_replay_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.StatsButton>.Content>.Item:nth-child(1)>a'
                 game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
-                game_length_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameLength'
                 summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
                 summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
                 
                 summoners = driver.find_elements_by_css_selector(summoner_name_tag)
                 summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
                 data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
-                game_length = driver.find_element_by_css_selector(game_length_tag).text
-                game_length = (int(game_length[:game_length.index('m')]) * 60) + int(game_length[game_length.index('m')+1:game_length.index('s')])
                 
                 # 선수 주 포지션이 아닐 경우 패스
                 if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
@@ -96,7 +96,13 @@ def downloader(player):
 
                     driver.switch_to_alert().accept()
                     time.sleep(1)
-                    popup_close_tag= f'.DimmedBlock>div>table>tbody>tr>td>div>.Close'
+
+                    version_tag= 'body > div.DimmedBlock > div > table > tbody > tr > td > div > div.Modal.SpectateModal.tabWrap._recognized > div.Footer > p'
+                    version = driver.find_element_by_css_selector(version_tag).text
+                    patch = version[17:version.index("Help") - 1]
+
+                    time.sleep(1)
+                    popup_close_tag= '.DimmedBlock>div>table>tbody>tr>td>div>.Close'
                     popup_close = driver.find_element_by_css_selector(popup_close_tag)
                     popup_close.click()
                     time.sleep(1)
@@ -111,13 +117,15 @@ def downloader(player):
                 match_info_dict = {
                     'id': data_game_id,
                     'name': player[0],
+                    'pro_name': player[2],
+                    'region': region,
                     'tier': tier,
                     'position': player[1],
-                    'length': game_length,
                     'champion': '',
                     'vs_name': '',
                     'vs_champion': '',
                     'team': '',
+                    'patch': patch,
                     'record': False,
                     'upload': False
                 }
@@ -137,6 +145,8 @@ def downloader(player):
 
                 match_info_df = pd.DataFrame(match_info_dict, index=[0])
                 dfs.append(match_info_df)
+                print(match_info_df)
+                time.sleep(3)
             
             # 100개가 넘어가면 오래된 파일은 삭제
             file_list = os.listdir(download_location)
