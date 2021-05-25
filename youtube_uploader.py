@@ -2,10 +2,8 @@
 
 import os
 import time
-from numpy import string_
 import pyautogui as pg
 import keyboard
-import database
 import urllib
 import replay_maker
 
@@ -14,7 +12,7 @@ def pressed(key, num):
         keyboard.press(key)
         time.sleep(0.2)
         keyboard.release(key)
-        time.sleep(0.2)
+        time.sleep(1)
 
 def upload(match_info):
     id = match_info['id']
@@ -79,7 +77,7 @@ def upload(match_info):
         print('loading...')
         time.sleep(5)
 
-    title = f'{pro_name.upper()} {champion.upper()}! - {pro_name} {champion} vs {vs_champion} | {region} Solo {patch}'
+    title = f'{pro_name.upper()} {champion.upper()}! - {pro_name} {champion} vs {vs_champion} | {region} Solo | {patch}'
     keyboard.write(title) # 제목
 
     pressed('tab', 2)
@@ -120,10 +118,16 @@ def upload(match_info):
     while True:
         if replay_maker.find_image('sd.png') != False:
             print('video loaded!')
+            time.sleep(5)
             break
         
         print('video loading...')
         time.sleep(5)
+
+    pressed('tab', 12)
+    pressed('enter', 1)
+    pressed('tab', 11)
+    pressed('enter', 1)
     
     pg.moveTo(589, 544)
     pg.click()
@@ -131,7 +135,7 @@ def upload(match_info):
 
     pg.moveTo(1402, 966)
     pg.click()
-    time.sleep(1)
+    time.sleep(10)
 
     pg.moveTo(1895, 13)
     pg.click()
@@ -140,4 +144,22 @@ def upload(match_info):
 # while True:
 #     print("mouse position : ", pg.position())
 #     time.sleep(1)
+
+# match_info_dict = {
+#                     'id': 5211349961,
+#                     'name': 'Hide on bush',
+#                     'pro_name': 'T1 Faker',
+#                     'region': 'KR',
+#                     'tier': 'c',
+#                     'position': 3,
+#                     'champion': 'Viktor',
+#                     'vs_name': 'ddd',
+#                     'vs_champion': 'Le',
+#                     'team': '',
+#                     'patch': '11.10.3',
+#                     'record': False,
+#                     'upload': False
+#                 }
+
+# upload(match_info_dict)
 
