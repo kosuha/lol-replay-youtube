@@ -10,6 +10,7 @@ import time
 import urllib
 import pandas as pd
 from urllib.request import urlretrieve
+import thumbnail
 
 def downloader(player):
     options = webdriver.FirefoxOptions()
@@ -147,6 +148,7 @@ def downloader(player):
                 match_info_df = pd.DataFrame(match_info_dict, index=[0])
                 dfs.append(match_info_df)
                 print(match_info_df)
+                thumbnail.thumbnail_maker(match_info_dict)
                 time.sleep(3)
             
             # 100개가 넘어가면 오래된 파일은 삭제

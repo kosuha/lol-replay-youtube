@@ -42,12 +42,13 @@ for player in players:
 
         match_info = data.iloc[0]
 
-        thumbnail.thumbnail_maker(match_info)
-
         if match_info['record'] == 0:
             player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
             record_result = replay_maker.run(player_parse, match_info)
             if record_result == False:
+                player_parse = urllib.parse.quote(match_info['name'])
+                remove_target = os.path.join(highlights_location, f"{match_info['id']}_{player_parse}.webm")
+                os.remove(remove_target)
                 continue
             player_ = data.iloc[0]['name'].replace(" ", "_").lower()
             database.recorded(match_info['name'], match_info['id'])
