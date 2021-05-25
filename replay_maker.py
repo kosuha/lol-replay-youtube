@@ -93,13 +93,21 @@ def run(player, match_info):
 
     while True:
         if find_image('fail.png') != False:
-            keyboard.press('alt')
-            keyboard.press('f4')
-            time.sleep(0.5)
-            keyboard.release('alt')
-            keyboard.release('f4')
             time.sleep(5)
+            pg.moveTo(960, 488)
+            pg.click()
+            time.sleep(5)
+            keyboard.press('enter')
+            time.sleep(0.5)
+            keyboard.release('enter')
+            time.sleep(20)
             database.failed(match_info['name'], match_info['id'])
+            highlights_location = 'C:\\Users\\okeyd\\Documents\\League of Legends\\Highlights'
+            file_list = os.listdir(highlights_location)
+            src = os.path.join(highlights_location, file_list[0])
+            player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
+            new_name = os.path.join(highlights_location, f"{match_info['id']}_{player_parse}.webm")
+            os.rename(src, new_name)
             return False
 
         if find_image('end.png') != False:
