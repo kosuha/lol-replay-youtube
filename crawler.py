@@ -127,7 +127,8 @@ def downloader(player):
                     'team': '',
                     'patch': patch,
                     'record': False,
-                    'upload': False
+                    'upload': False,
+                    'failed': False
                 }
 
                 # 팀 구분하고 매치 정보 저장
@@ -160,7 +161,22 @@ def downloader(player):
             driver.quit()
             
             if len(dfs) == 0:
-                return pd.DataFrame(columns=[0])
+                return pd.DataFrame(columns=[
+                    'id',
+                    'name',
+                    'pro_name',
+                    'region',
+                    'tier',
+                    'position',
+                    'champion',
+                    'vs_name',
+                    'vs_champion',
+                    'team',
+                    'patch',
+                    'record',
+                    'upload',
+                    'failed'
+                    ])
 
             df = pd.concat(dfs)
 
