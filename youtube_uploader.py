@@ -82,7 +82,8 @@ def upload(match_info):
 
     pressed('tab', 2)
 
-    description = f'{player} {champion} vs {vs_player} {vs_champion} | {region} Solo {patch}'
+    description = f'#{pro_name.replace(" ", "")} #{champion.replace(" ", "")} #challenger \n{player} {champion} vs {vs_player} {vs_champion} \n{region} Solo {patch}'
+
     keyboard.write(description)  # 설명
     time.sleep(1)
 
@@ -145,7 +146,7 @@ def upload(match_info):
 #     print("mouse position : ", pg.position())
 #     time.sleep(1)
 
-# match_info_dict = {
+# match_info = {
 #                     'id': 5211349961,
 #                     'name': 'Hide on bush',
 #                     'pro_name': 'T1 Faker',
@@ -161,5 +162,17 @@ def upload(match_info):
 #                     'upload': False
 #                 }
 
-# upload(match_info_dict)
+# id = match_info['id']
+# player = match_info['name']
+# region = match_info['region']
+# pro_name = match_info['pro_name']
+# tier = match_info['tier']
+# position = match_info['position']
+# champion = match_info['champion']
+# vs_player = match_info['vs_name']
+# vs_champion = match_info['vs_champion']
+# patch = 'Patch ' + match_info['patch']
 
+# description = f'#{player.replace(" ", "")} #{pro_name.replace(" ", "")} #{champion.replace(" ", "")} #challenger #LoL \n{player} {champion} vs {vs_player} {vs_champion} \n{region} Solo {patch}'
+
+# print(description)
