@@ -8,8 +8,31 @@ import pandas as pd
 import thumbnail
 import youtube_uploader
 import pymysql
+import pefile
 
-players = [['Hide on bush', 3, 'T1 Faker']]
+players = [
+    ['Hide on bush', 3, 'T1 Faker'],
+    ['DK ShowMaker', 3, 'DK ShowMaker'],
+    ['elole', 1, 'DK Khan'],
+    ['Gen G Ruler', 4, 'Gen G Ruler'],
+    ['Gen G Clid', 2, 'Gen G Clid'],
+    ['T1 Gumayusi', 4, 'T1 Gumayusi']
+]
+
+def now_patch():
+    pe = pefile.PE(r'C:/Riot Games/League of Legends/Game/League of Legends.exe')
+    string_version_info = {}
+
+    for fileinfo in pe.FileInfo[0]:
+        if fileinfo.Key.decode() == 'StringFileInfo':
+            for st in fileinfo.StringTable:
+                for entry in st.entries.items():
+                    string_version_info[entry[0].decode()] = entry[1].decode()
+
+    versions = string_version_info['FileVersion'].split(".")
+    version = versions[0] + "." + versions[1] + "." + versions[2][0]
+
+    return version
 
 # 선수의 다운로드 폴더가 없으면 생성
 def make_download_dir(players):
@@ -43,6 +66,9 @@ for player in players:
         match_info = data.iloc[0]
 
         if match_info['record'] == 0:
+            if match_info['patch'] != now_patch():
+                database.failed(match_info['name'], match_info['id'])
+                continue
             player_parse = urllib.parse.quote(match_info['name']) # 한글 깨짐 방지
             record_result = replay_maker.run(player_parse, match_info)
             if record_result == False:
