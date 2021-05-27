@@ -25,6 +25,8 @@ def upload(match_info):
     vs_player = match_info['vs_name']
     vs_champion = match_info['vs_champion']
     patch = 'Patch ' + match_info['patch']
+    kill = match_info['kill']
+    badge = match_info['badge']
 
     # 크롬 열기 Point(x=560, y=1065)
     pg.moveTo(560, 1065)
@@ -77,7 +79,7 @@ def upload(match_info):
         print('loading...')
         time.sleep(5)
 
-    title = f'{pro_name.upper()} {champion.upper()}! - {pro_name} {champion} vs {vs_champion} | {region} Solo | {patch}'
+    title = f'{pro_name.upper()} {champion.upper()} {kill}! - {pro_name} {champion} vs {vs_champion} | {region}Challenger SoloQ | {patch}'
     keyboard.write(title) # 제목
 
     pressed('tab', 2)
