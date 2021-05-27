@@ -70,14 +70,23 @@ def downloader(player):
                 game_type_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>.GameStats>.GameType'
                 summoner_name_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.SummonerName'
                 summoner_champion_tag= f'.GameItemList>.GameItemWrap:nth-child({i})>div>.Content>div>.Team>div:nth-child({player[1]})>.ChampionImage>div:nth-child(1)'
+                kda_tag = f'#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.RealContent > div > div.Content > div.GameItemList > div:nth-child({i}) > div > div.Content > div.KDA > div.KDARatio > span'
                 
                 summoners = driver.find_elements_by_css_selector(summoner_name_tag)
                 summoners_champion = driver.find_elements_by_css_selector(summoner_champion_tag)
                 data_game_id= driver.find_element_by_css_selector(f'.GameItemList>.GameItemWrap:nth-child({i})>div').get_attribute('data-game-id')
-                
+                kda_text = driver.find_element_by_css_selector(kda_tag).text
+
                 # 선수 주 포지션이 아닐 경우 패스
                 if summoners[0].text.lower() != player[0].lower() and summoners[1].text.lower() != player[0].lower():
                     continue
+
+                # 평점이 1 미만 패스
+                if kda_text != 'perfect':
+                    kda = float(kda_text[:kda_text.find(":")])
+                    if kda < 1.0:
+                        print('no!', kda)
+                        continue
 
                 # 이미 있는 리플레이는 패스
                 file_list = os.listdir(download_location)
@@ -126,11 +135,27 @@ def downloader(player):
                     'vs_name': '',
                     'vs_champion': '',
                     'team': '',
+                    'kill': '',
+                    'badge': '',
                     'patch': patch,
                     'record': False,
                     'upload': False,
                     'failed': False
                 }
+
+                try:
+                    kill_tag= f'#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.RealContent > div > div.Content > div.GameItemList > div:nth-child({i}) > div > div.Content > div.KDA > div.MultiKill > span'
+                    kill = driver.find_element_by_css_selector(kill_tag).text
+                    match_info_dict['kill'] = kill
+                except:
+                    match_info_dict['kill'] = ''
+                
+                try:
+                    badge_tag= f'#SummonerLayoutContent > div.tabItem.Content.SummonerLayoutContent.summonerLayout-summary > div.RealContent > div > div.Content > div.GameItemList > div:nth-child({i}) > div > div.Content > div.KDA > div.Badge > span'
+                    badge = driver.find_element_by_css_selector(badge_tag).text
+                    match_info_dict['badge'] = badge
+                except:
+                    match_info_dict['badge'] = ''
 
                 # 팀 구분하고 매치 정보 저장
                 if summoners[0].text == player[0]:
@@ -174,6 +199,8 @@ def downloader(player):
                     'vs_name',
                     'vs_champion',
                     'team',
+                    'kill',
+                    'badge',
                     'patch',
                     'record',
                     'upload',
