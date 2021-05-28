@@ -79,7 +79,7 @@ def upload(match_info):
         print('loading...')
         time.sleep(5)
 
-    title = f'{pro_name.upper()} {champion.upper()} {kill}! - {pro_name} {champion} vs {vs_champion} | {region}Challenger SoloQ | {patch}'
+    title = f'{pro_name.upper()} {champion.upper()} {kill}! - {champion} vs {vs_champion} | {region} Challenger SoloQ | {patch}'
     keyboard.write(title) # 제목
 
     pressed('tab', 2)
