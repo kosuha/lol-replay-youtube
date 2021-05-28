@@ -82,7 +82,7 @@ def downloader(player):
                     continue
 
                 # 평점이 1 미만 패스
-                if kda_text != 'perfect':
+                if kda_text != 'Perfect':
                     kda = float(kda_text[:kda_text.find(":")])
                     if kda < 1.0:
                         print('no!', kda)
